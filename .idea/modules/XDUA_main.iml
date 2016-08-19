@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="XDUA:main" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="AI" external.system.module.type="sourceSet" external.system.module.version="1.0-SNAPSHOT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../../build/classes/main" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../src/main/resources" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Gradle: com.kymjs.rxvolley:rxvolley:aar:1.0.9" level="project" />
+    <orderEntry type="library" name="Gradle: io.reactivex:rxandroid:aar:1.1.0" level="project" />
+    <orderEntry type="library" name="Gradle: io.reactivex:rxjava:1.1.0" level="project" />
+    <orderEntry type="library" name="lib" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../../Log4jXML" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/../../Log4jXML" recursive="false" />
+      </library>
+    </orderEntry>
+  </component>
+</module>
