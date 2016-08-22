@@ -3,6 +3,8 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
+
+
 repositories {
     mavenCentral()
     jcenter()
@@ -10,5 +12,12 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'com.kymjs.rxvolley:rxvolley:1.0.9'
+    compile group: 'us.codecraft', name: 'webmagic-core', version: '0.5.3'
+    compile group: 'us.codecraft', name: 'webmagic-extension', version: '0.5.3'
+    compile group: 'org.json', name: 'json', version: '20090211'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
 }
+
+
+
+

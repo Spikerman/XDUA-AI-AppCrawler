@@ -45,6 +45,7 @@ public class Crawler {
         Spider.create(new AppStorePageProcessor(store, packageName))
                 .addUrl(appPageLink)
                 .addPipeline(new AppInfoPipeline())
+                .setDownloader(new DataDownloader())
                 .thread(1)
                 .run();
     }

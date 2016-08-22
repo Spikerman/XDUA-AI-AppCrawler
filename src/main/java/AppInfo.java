@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,12 +11,12 @@ public class AppInfo {
     public String imgUrl;
     public long apkSize;
     public String version;
-    public String versionDate;
+    public int versionDate;
     public List<String> permissionList;
     public int ratingCount;
     public float rating;
     public long download;
-    public String cato;
+    public List<String> catoList = new ArrayList();
     public String brief;
 
     public AppInfo() {
@@ -42,7 +43,8 @@ public class AppInfo {
         System.out.println(brief);
         System.out.println("======================");
         System.out.println("下载量: " + download);
-        System.out.println("类型: " + cato);
-
+        catoList.forEach(
+                System.out::println
+        );
     }
 }
