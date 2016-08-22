@@ -95,9 +95,8 @@ public class DataDownloader extends AbstractDownloader {
             }
 
         } catch (IOException e) {
-            logger.warn("download page " + request.getUrl() + " error");
+            logger.warn("download page " + request.getUrl() + " error, 放入队列重连");
             if (site.getCycleRetryTimes() > 0) {
-                logger.info("放入队列重连");
                 return addToCycleRetry(request, site);
             }
             onError(request);

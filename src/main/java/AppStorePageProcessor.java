@@ -19,7 +19,7 @@ public class AppStorePageProcessor implements PageProcessor {
     public String packageName;
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    public Site site = Site.me().setCycleRetryTimes(10).setSleepTime(1500).setTimeOut(2500)
+    public Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
             .addHeader("X-Apple-Store-Front", "143465,12")
@@ -31,10 +31,12 @@ public class AppStorePageProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        String pname = "com.meitu.meipaimv";
+        String meitu = "com.meitu.meipaimv";
+        String unknown = "ayh.mygps";
+        String qq = "com.tencent.qqmusic";
         String store = "XIAOMI";
-        String appPageLink = String.format(storeLinkForMI, pname);
-        Spider.create(new AppStorePageProcessor(store, pname))
+        String appPageLink = String.format(storeLinkForMI, qq);
+        Spider.create(new AppStorePageProcessor(store, qq))
                 .addUrl(appPageLink)
                 .addPipeline(new AppInfoPipeline())
                 .setDownloader(new DataDownloader())
@@ -69,6 +71,7 @@ public class AppStorePageProcessor implements PageProcessor {
             System.out.println(packageName + " 获取失败");
             return;
         }
+
         appInfo.cname = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/h3[1]/text()").toString();
         appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-info]/img[1]/@src").toString();
         String apkSizeString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[2]/text()").replace("M", "").toString();

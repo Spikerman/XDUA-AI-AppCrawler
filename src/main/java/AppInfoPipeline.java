@@ -17,9 +17,11 @@ public class AppInfoPipeline implements Pipeline {
         AppInfo appInfo = resultItems.get("appinfo");
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
         if (appInfo.cname != null) {
-            System.out.println(appInfo.packageName + " 获取成功");
             appInfo.printAppInfo();
             JSONObject jsonObject = new JSONObject();
+            RequestBody body;
+            Response response;
+
             try {
                 jsonObject.put("action", "setinfo");
                 jsonObject.put("isfrom", "app.xiaomi.com");
@@ -37,32 +39,23 @@ public class AppInfoPipeline implements Pipeline {
                 jsonObject.put("downloadc", appInfo.download);
                 jsonObject.put("apksize", appInfo.apkSize);
 
-                RequestBody body = RequestBody.create(JSON, jsonObject.toString());
+                body = RequestBody.create(JSON, jsonObject.toString());
                 Request request = new Request.Builder()
                         .url("http://api.xdua.org/apps")
                         .post(body)
                         .build();
-                Response response = client.newCall(request).execute();
+                response = client.newCall(request).execute();
 
                 if (response.isSuccessful()) {
-                    System.out.println(response.body().string());
-//                    JSONObject responseObj = new JSONObject(response.body().string());
-//                    if (responseObj.getInt("status") == 0) {
-//                        String pname = responseObj.getJSONObject("result").get("pname").toString();
-//                        System.out.println("从服务器获取的Package: " + pname);
-//                        crawler.setStore("XIAOMI").setPackageName(pname).start();
-//                    } else {
-//                        System.out.println("爬去完毕,运行结束");
-//                        return;
-//                    }
+                    System.out.println(appInfo.packageName + " update success!");
                 } else {
-                    System.out.println("Unexpected code " + response + " 与服务器连接失败");
+                    System.out.println("Unexpected code " + response + " fail to upload to the server");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+
             }
-
-
         }
     }
 }

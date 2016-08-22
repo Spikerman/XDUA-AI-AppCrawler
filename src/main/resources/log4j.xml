@@ -11,11 +11,11 @@
 
 
     <logger name="org.apache" additivity="false">
-        <level value="info"/>
+        <level value="warn"/>
     </logger>
 
     <root>
-        <level value="info"/>
+        <level value="warn"/>
         <appender-ref ref="myConsole"/>
     </root>
 
