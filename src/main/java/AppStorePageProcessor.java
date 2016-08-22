@@ -1,3 +1,5 @@
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -14,10 +16,10 @@ import java.util.regex.Pattern;
 
 public class AppStorePageProcessor implements PageProcessor {
 
-    public static String storeLinkForMI = "http://app.xiaomi.com/details?id=%s";
+    public static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
+    public static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
     public String store;
     public String packageName;
-
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
     public Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
@@ -34,12 +36,17 @@ public class AppStorePageProcessor implements PageProcessor {
         String meitu = "com.meitu.meipaimv";
         String unknown = "ayh.mygps";
         String qq = "com.tencent.qqmusic";
-        String store = "XIAOMI";
-        String appPageLink = String.format(storeLinkForMI, qq);
-        Spider.create(new AppStorePageProcessor(store, qq))
+
+        String xiaomi = "XIAOMI";
+        String yyb = "YYB";
+
+        String appPageLink = String.format(storeLinkForXIAOMI, qq);
+
+        //目前去除pipeline, 取消与服务器的连接, 只测试爬虫部分
+        Spider.create(new AppStorePageProcessor(xiaomi, qq))
                 .addUrl(appPageLink)
+                .setDownloader(new DataDownloader(qq))
                 .addPipeline(new AppInfoPipeline())
-                .setDownloader(new DataDownloader())
                 .thread(1)
                 .run();
     }
@@ -52,9 +59,12 @@ public class AppStorePageProcessor implements PageProcessor {
             case "XIAOMI":
                 pageParserForXIAOMI(page, appInfo);
                 break;
+            case "YYB":
+                pageParserForYYB(page, appInfo);
+                break;
         }
-
         page.putField("appinfo", appInfo);
+        page.putField("store", store);
     }
 
     @Override
@@ -65,17 +75,18 @@ public class AppStorePageProcessor implements PageProcessor {
 
     //小米应用商店解析
     private void pageParserForXIAOMI(Page page, AppInfo appInfo) {
-
         appInfo.company = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/p[1]/text()").toString();
         if (appInfo.company == null) {
-            System.out.println(packageName + " 获取失败");
+            System.out.println("NOT FIND  " + packageName);
             return;
         }
 
         appInfo.cname = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/h3[1]/text()").toString();
         appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-info]/img[1]/@src").toString();
+
         String apkSizeString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[2]/text()").replace("M", "").toString();
         appInfo.apkSize = (long) Float.parseFloat(apkSizeString) * 1024 * 1024;
+
         appInfo.version = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[4]/text()").toString();
 
         String versionDataString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[6]/text()").replace("-", "").toString();
@@ -109,4 +120,26 @@ public class AppStorePageProcessor implements PageProcessor {
         appInfo.rating = Float.parseFloat(m.replaceAll("")) / 2;
         appInfo.brief = page.getHtml().xpath("//p[@class=pslide]/text()").toString();
     }
+
+
+    private void pageParserForYYB(Page page, AppInfo appInfo) {
+
+        appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
+        appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
+        appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").toString();
+        String versionDateString = page.getHtml().xpath("//div[@id=J_ApkPublishTime]/text()").toString();//显示错误
+        appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
+
+        String downloadString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-ins-num]/text()").toString();
+
+        String apkSizeString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-size]/text()").toString();
+        String rateString = page.getHtml().xpath("//div[@class=com-blue-star-num]/text()").toString();
+        String rateCountString = page.getHtml().xpath("//div[@id=J_CommentCount]/text()").toString();//显示错误
+        String typeString = page.getHtml().xpath("//div[@class=det-type-link]/text()").toString();//显示错误
+        appInfo.brief = page.getHtml().xpath("//div[@class=det-intro-text]/div[1]/text()").toString();
+
+        System.out.println();
+    }
+
+
 }

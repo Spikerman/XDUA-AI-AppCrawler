@@ -21,6 +21,14 @@ public class Crawler {
         store = "XIAOMI";
     }
 
+    public static void main(String args[]) {
+        Crawler crawler = new Crawler();
+        String qq = "com.tencent.qqmusic";
+        String xiaomiStore = "XIAOMI";
+
+        crawler.setPackageName(qq).setStore(xiaomiStore).start();
+
+    }
 
     public Crawler setPackageName(String packageName) {
         this.packageName = packageName;
@@ -36,16 +44,19 @@ public class Crawler {
         String appPageLink;
         switch (store) {
             case "XIAOMI":
-                appPageLink = String.format(AppStorePageProcessor.storeLinkForMI, packageName);
+                appPageLink = String.format(AppStorePageProcessor.storeLinkForXIAOMI, packageName);
+                break;
+            case "YYB":
+                appPageLink = String.format(AppStorePageProcessor.storeLinkForYYB, packageName);
                 break;
             default:
-                appPageLink = String.format(AppStorePageProcessor.storeLinkForMI, packageName);
+                appPageLink = String.format(AppStorePageProcessor.storeLinkForXIAOMI, packageName);
         }
 
         Spider.create(new AppStorePageProcessor(store, packageName))
                 .addUrl(appPageLink)
                 .addPipeline(new AppInfoPipeline())
-                .setDownloader(new DataDownloader())
+                .setDownloader(new DataDownloader(packageName))
                 .thread(1)
                 .run();
     }

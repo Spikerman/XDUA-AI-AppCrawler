@@ -28,7 +28,6 @@ jar {
 
 
 
-
 uploadArchives {
     repositories {
         flatDir {

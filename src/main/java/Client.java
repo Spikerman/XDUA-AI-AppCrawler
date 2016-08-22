@@ -27,18 +27,18 @@ public class Client {
                     JSONObject responseObj = new JSONObject(response.body().string());
                     if (responseObj.getInt("status") == 0) {
                         String pname = responseObj.getJSONObject("result").get("pname").toString();
-                        System.out.println("从服务器获取的Package: " + pname);
                         crawler.setStore("XIAOMI").setPackageName(pname).start();
+                        System.out.println();
                     } else {
-                        System.out.println("数据库爬取完毕,运行结束");
+                        System.out.println("Crawler Finish");
                         return;
                     }
                 } else {
-                    System.out.println("与服务器连接失败 " + response + " 系统结束运行");
+                    System.out.println("XDUA Server Retrieve Fail " + response);
                     return;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }

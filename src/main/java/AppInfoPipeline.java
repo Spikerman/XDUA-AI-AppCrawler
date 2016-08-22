@@ -1,5 +1,7 @@
 import okhttp3.*;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
@@ -10,21 +12,34 @@ import us.codecraft.webmagic.pipeline.Pipeline;
 public class AppInfoPipeline implements Pipeline {
     public MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public OkHttpClient client = new OkHttpClient();
-    Crawler crawler = new Crawler();
+
 
     @Override
     public void process(ResultItems resultItems, Task task) {
         AppInfo appInfo = resultItems.get("appinfo");
+        String store = resultItems.get("store");
+        String appStore;
+        switch (store) {
+            case "XIAOMI":
+                appStore = "app.xiaomi.com";
+                break;
+            case "YYB":
+                appStore = "sj.qq.com";
+                break;
+            default:
+                appStore = "app.xiaomi.com";
+
+        }
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
         if (appInfo.cname != null) {
-            appInfo.printAppInfo();
+            //appInfo.printAppInfo();
             JSONObject jsonObject = new JSONObject();
             RequestBody body;
             Response response;
 
             try {
                 jsonObject.put("action", "setinfo");
-                jsonObject.put("isfrom", "app.xiaomi.com");
+                jsonObject.put("isfrom", appStore);
                 jsonObject.put("pname", appInfo.packageName);
                 jsonObject.put("rating", appInfo.rating);
                 jsonObject.put("catos", appInfo.catoList);
@@ -47,14 +62,12 @@ public class AppInfoPipeline implements Pipeline {
                 response = client.newCall(request).execute();
 
                 if (response.isSuccessful()) {
-                    System.out.println(appInfo.packageName + " update success!");
+                    System.out.println("SUCCESS    " + appInfo.packageName);
                 } else {
-                    System.out.println("Unexpected code " + response + " fail to upload to the server");
+                    System.out.println("XDUA Server Upload Error " + response);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-
+                //e.printStackTrace();
             }
         }
     }

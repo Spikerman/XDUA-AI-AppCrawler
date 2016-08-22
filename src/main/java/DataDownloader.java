@@ -33,6 +33,11 @@ public class DataDownloader extends AbstractDownloader {
     private final Map<String, CloseableHttpClient> httpClients = new HashMap<String, CloseableHttpClient>();
     private Logger logger = LoggerFactory.getLogger(getClass());
     private HttpClientGenerator httpClientGenerator = new HttpClientGenerator();
+    private String packageName;
+
+    public DataDownloader(String packageName) {
+        this.packageName = packageName;
+    }
 
     private CloseableHttpClient getHttpClient(Site site) {
         if (site == null) {
@@ -84,7 +89,7 @@ public class DataDownloader extends AbstractDownloader {
                 onSuccess(request);
                 return page;
             } else {
-                logger.warn("code error " + statusCode + "\t" + request.getUrl());
+                logger.info("code error " + statusCode + "\t" + request.getUrl());
                 if (statusCode == 403) {
                     return addToCycleRetry(request, site);
                 } else {
@@ -95,7 +100,7 @@ public class DataDownloader extends AbstractDownloader {
             }
 
         } catch (IOException e) {
-            logger.warn("download page " + request.getUrl() + " error, 放入队列重连");
+            System.out.println("TIMEOUT    " + packageName);
             if (site.getCycleRetryTimes() > 0) {
                 return addToCycleRetry(request, site);
             }
