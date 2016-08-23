@@ -1,7 +1,5 @@
 import okhttp3.*;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
@@ -17,24 +15,26 @@ public class AppInfoPipeline implements Pipeline {
     @Override
     public void process(ResultItems resultItems, Task task) {
         AppInfo appInfo = resultItems.get("appinfo");
-        String store = resultItems.get("store");
+        String store = resultItems.get("storeList");
         String appStore;
         switch (store) {
             case "XIAOMI":
                 appStore = "app.xiaomi.com";
                 break;
-            case "YYB":
+            case "YYB": {
                 appStore = "sj.qq.com";
-                break;
+                if (resultItems.get("ratingCount") != null)
+                    appInfo.ratingCount = resultItems.get("ratingCount");
+            }
+            break;
             default:
                 appStore = "app.xiaomi.com";
 
         }
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
-        if (appInfo.cname != null) {
-            //appInfo.printAppInfo();
+        if (appInfo.cname != null && resultItems.get("ratingCount") != null) {
             JSONObject jsonObject = new JSONObject();
-            RequestBody body;
+            RequestBody requestBody;
             Response response;
 
             try {
@@ -54,15 +54,15 @@ public class AppInfoPipeline implements Pipeline {
                 jsonObject.put("downloadc", appInfo.download);
                 jsonObject.put("apksize", appInfo.apkSize);
 
-                body = RequestBody.create(JSON, jsonObject.toString());
+                requestBody = RequestBody.create(JSON, jsonObject.toString());
                 Request request = new Request.Builder()
                         .url("http://api.xdua.org/apps")
-                        .post(body)
+                        .post(requestBody)
                         .build();
                 response = client.newCall(request).execute();
 
                 if (response.isSuccessful()) {
-                    System.out.println("SUCCESS    " + appInfo.packageName);
+                    System.out.println(appInfo.packageName + "   SUCCESS " + store);
                 } else {
                     System.out.println("XDUA Server Upload Error " + response);
                 }

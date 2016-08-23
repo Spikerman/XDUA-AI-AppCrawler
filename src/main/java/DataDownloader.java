@@ -34,9 +34,11 @@ public class DataDownloader extends AbstractDownloader {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private HttpClientGenerator httpClientGenerator = new HttpClientGenerator();
     private String packageName;
+    private String store;
 
-    public DataDownloader(String packageName) {
+    public DataDownloader(String packageName, String store) {
         this.packageName = packageName;
+        this.store = store;
     }
 
     private CloseableHttpClient getHttpClient(Site site) {
@@ -100,7 +102,7 @@ public class DataDownloader extends AbstractDownloader {
             }
 
         } catch (IOException e) {
-            System.out.println("TIMEOUT    " + packageName);
+            System.out.println(packageName + "    TIMEOUT " + store);
             if (site.getCycleRetryTimes() > 0) {
                 return addToCycleRetry(request, site);
             }

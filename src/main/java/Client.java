@@ -10,9 +10,9 @@ public class Client {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static OkHttpClient client = new OkHttpClient();
+    public static Crawler crawler = new Crawler();
 
     public static void main(String args[]) {
-        Crawler crawler = new Crawler();
         while (true) {
             JSONObject jsonObject = new JSONObject();
             try {
@@ -26,8 +26,9 @@ public class Client {
                 if (response.isSuccessful()) {
                     JSONObject responseObj = new JSONObject(response.body().string());
                     if (responseObj.getInt("status") == 0) {
-                        String pname = responseObj.getJSONObject("result").get("pname").toString();
-                        crawler.setStore("XIAOMI").setPackageName(pname).start();
+                        String packageName = responseObj.getJSONObject("result").get("pname").toString();
+                        crawler.addStore("XIAOMI").addStore("YYB").setPackage(packageName).start();
+
                         System.out.println();
                     } else {
                         System.out.println("Crawler Finish");
