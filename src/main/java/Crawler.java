@@ -9,18 +9,22 @@ import java.util.Set;
  * Created by chenhao on 8/19/16.
  */
 public class Crawler {
+    private static Crawler instance = null;
     private String packageName;
     private Set<String> storeSet = new HashSet<>();
 
-    public static void main(String args[]) {
-        Crawler crawler = new Crawler();
-        String qq = "com.tencent.qqmusic";
+    public static Crawler getInstance() {
+        if (instance == null) {
+            instance = new Crawler();
+        }
+        return instance;
+    }
 
+    public static void main(String args[]) {
+        String qq = "com.tencent.qqmusic";
         String xiaomi = "XIAOMI";
         String yyb = "YYB";
-
-        crawler.setPackage(qq).addStore(yyb).start();
-
+        Crawler.getInstance().setPackage(qq).addStore(yyb).start();
     }
 
     public Crawler setPackage(String packageName) {

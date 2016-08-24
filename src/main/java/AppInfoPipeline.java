@@ -8,9 +8,9 @@ import us.codecraft.webmagic.pipeline.Pipeline;
  * Created by chenhao on 8/19/16.
  */
 public class AppInfoPipeline implements Pipeline {
-    public MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    public OkHttpClient client = new OkHttpClient();
 
+    private MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private OkHttpClient client = new OkHttpClient();
 
     @Override
     public void process(ResultItems resultItems, Task task) {

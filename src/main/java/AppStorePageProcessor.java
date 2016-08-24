@@ -14,18 +14,20 @@ import java.util.regex.Pattern;
 
 public class AppStorePageProcessor implements PageProcessor {
 
-    public static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
-    public static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
-    public static String ajaxRegrexYYB = ".*comment.htm\\?apkName=.*";
-    public String store;
-    public String packageName;
+    static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
+    static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
+    private static String ajaxRegrexYYB = ".*comment.htm\\?apkName=.*";
+    private String store;
+    private String packageName;
+
+
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
     public Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
             .addHeader("X-Apple-Store-Front", "143465,12")
             .addHeader("Accept-Language", "en-us, en, zh; q=0.50");
-    AppInfo appInfo = new AppInfo();
+    private AppInfo appInfo = new AppInfo();
 
     public AppStorePageProcessor(String store, String packageName) {
         this.store = store;
@@ -116,7 +118,7 @@ public class AppStorePageProcessor implements PageProcessor {
             }
             appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
             appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
-            appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V", "").toString();
+            appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V|v", "").toString();
 
             //处理下载量
             String downloadString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-ins-num]/text()").toString();//8.3亿下载
@@ -141,11 +143,9 @@ public class AppStorePageProcessor implements PageProcessor {
 
             appInfo.brief = page.getHtml().xpath("//div[@class=det-intro-text]/div[1]/text()").toString();
 
-            //TODO  以下两项目前无法获取,有待改进
+            //TODO  以项目前无法获取,有待改进
             String versionDateString = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[4]").toString();//显示错误
             appInfo.versionDate = 0;
-            String rateCountString = page.getHtml().xpath("//a[@class=det-comment-num]").toString();//显示错误
-            appInfo.ratingCount = 0;
 
         }
 
