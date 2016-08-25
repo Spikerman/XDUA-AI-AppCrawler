@@ -24,7 +24,8 @@ public class Crawler {
         String qq = "com.tencent.qqmusic";
         String xiaomi = "XIAOMI";
         String yyb = "YYB";
-        Crawler.getInstance().setPackage(qq).addStore(yyb).start();
+        String wdj = "WDJ";
+        Crawler.getInstance().setPackage(qq).addStore(wdj).start();
     }
 
     public Crawler setPackage(String packageName) {
@@ -45,7 +46,6 @@ public class Crawler {
             thread.start();
             threadList.add(thread);
         }
-
         try {
             for (Thread thread : threadList) {
                 thread.join();
@@ -74,6 +74,9 @@ public class Crawler {
                     break;
                 case "YYB":
                     appPageLink = String.format(AppStorePageProcessor.storeLinkForYYB, packageName);
+                    break;
+                case "WDJ":
+                    appPageLink = String.format(AppStorePageProcessor.storeLinkForWDJ, packageName);
                     break;
                 default: {
                     System.out.println(store + " STORE NOT EXIST");

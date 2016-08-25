@@ -2,6 +2,7 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.JsonPathSelector;
+import us.codecraft.webmagic.selector.Selectable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,17 +17,15 @@ public class AppStorePageProcessor implements PageProcessor {
 
     static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
     static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
-    private static String ajaxRegrexYYB = ".*comment.htm\\?apkName=.*";
-    private String store;
-    private String packageName;
-
-
+    static String storeLinkForWDJ = "http://www.wandoujia.com/apps/%s";
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    public Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
+    private Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
             .addHeader("X-Apple-Store-Front", "143465,12")
             .addHeader("Accept-Language", "en-us, en, zh; q=0.50");
+    private String store;
+    private String packageName;
     private AppInfo appInfo = new AppInfo();
 
     public AppStorePageProcessor(String store, String packageName) {
@@ -43,6 +42,9 @@ public class AppStorePageProcessor implements PageProcessor {
                 break;
             case "YYB":
                 pageParserForYYB(page, appInfo);
+                break;
+            case "WDJ":
+                pageParserForWDJ(page, appInfo);
                 break;
         }
         page.putField("appinfo", appInfo);
@@ -105,8 +107,8 @@ public class AppStorePageProcessor implements PageProcessor {
 
 
     private void pageParserForYYB(Page page, AppInfo appInfo) {
-
-        if (page.getUrl().regex(ajaxRegrexYYB).match()) {
+        String ajaxRegexYYB = ".*comment.htm\\?apkName=.*";
+        if (page.getUrl().regex(ajaxRegexYYB).match()) {
             int ratingCount = Integer.parseInt(new JsonPathSelector("$.obj[*].total").select(page.getRawText()));
             page.putField("ratingCount", ratingCount);
         } else {
@@ -150,4 +152,81 @@ public class AppStorePageProcessor implements PageProcessor {
         }
 
     }
+
+
+    private void pageParserForWDJ(Page page, AppInfo appInfo) {
+
+        appInfo.company = page.getHtml().xpath("//dl[@class=infos-list]/dd[7]/a/span/text()").toString();
+        if (appInfo.company == null) {
+            System.out.println(packageName + "    NOT Find in " + store);
+            return;
+        }
+        appInfo.cname = page.getHtml().xpath("//p[@class=app-name]/span[@class=title]/text()").toString();
+        appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-icon]/img/@src").toString();
+
+        String versionDateString = page.getHtml().xpath("//dl[@class=infos-list]/dd[4]/time[1]/text()").toString();//201682
+        String[] dateArray = versionDateString.split("年|月|日");
+
+        String dateString = "";
+        for (String x : dateArray) {
+            if (x.length() < 2) {
+                dateString += "0" + x;
+            } else {
+                dateString += x;
+            }
+
+        }
+        appInfo.versionDate = Integer.parseInt(dateString);
+
+        appInfo.version = page.getHtml().xpath("//dl[@class=infos-list]/dd[5]/text()").toString();
+
+        appInfo.permissionList = new ArrayList<>();
+        List<Selectable> pmsNodeList = page.getHtml().xpath("//ul[@class=perms-list]/li").nodes();
+        for (Selectable node : pmsNodeList) {
+            appInfo.permissionList.add(node.xpath("//li/span/text()").toString());
+        }
+
+        appInfo.brief = page.getHtml().xpath("//div[@class=desc-info]/div[@itemprop=description]/text()").toString();
+
+        String apkSizeString = page.getHtml().xpath("//dl[@class=infos-list]/dd[1]/text()").replace("M", "").toString();
+        appInfo.apkSize = (long) Float.parseFloat(apkSizeString) * 1024 * 1024;
+
+        String downloadString = page.getHtml().xpath("//span[@class=item]/i[@itemprop=interactionCount]/text()").toString();
+        if (downloadString.indexOf("亿") > 0)
+            appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("亿", "")) * 100000000);
+        else if (downloadString.indexOf("万") > 0)
+            appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("万", "")) * 10000);
+        else
+            appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("", ""));//// TODO: 8/25/16 少量人带查询
+
+        List<Selectable> tagNodeList = page.getHtml().xpath("//div[@class=tag-box]").nodes();
+        for (Selectable node : tagNodeList) {
+            appInfo.catoList.add(node.xpath("//a/text()").toString());
+        }
+
+        float favorAmount = Float.parseFloat(page.getHtml().xpath("//div[@class=num-list]/span[2]/i/text()").toString());
+        float reviewAmount = Float.parseFloat(page.getHtml().xpath("//div[@class=num-list]/a/i/text()").toString());
+        if (reviewAmount != 0)
+            appInfo.rating = favorAmount / reviewAmount * 5;
+        else
+            appInfo.rating = 0;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -11,7 +11,6 @@ public class Client {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static OkHttpClient client = new OkHttpClient();
 
-
     public static void main(String args[]) {
         while (true) {
             JSONObject jsonObject = new JSONObject();
@@ -27,7 +26,12 @@ public class Client {
                     JSONObject responseObj = new JSONObject(response.body().string());
                     if (responseObj.getInt("status") == 0) {
                         String packageName = responseObj.getJSONObject("result").get("pname").toString();
-                        Crawler.getInstance().addStore("XIAOMI").addStore("YYB").setPackage(packageName).start();
+                        Crawler.getInstance()
+                                .addStore("XIAOMI")
+                                .addStore("YYB")
+                                .addStore("WDJ")
+                                .setPackage(packageName)
+                                .start();
                         System.out.println();
                     } else {
                         System.out.println("Crawler Finish");
@@ -42,6 +46,4 @@ public class Client {
             }
         }
     }
-
-
 }

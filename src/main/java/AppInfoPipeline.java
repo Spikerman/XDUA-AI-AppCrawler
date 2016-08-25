@@ -27,6 +27,9 @@ public class AppInfoPipeline implements Pipeline {
                     appInfo.ratingCount = resultItems.get("ratingCount");
             }
             break;
+            case "WDJ":
+                appStore = "www.wandoujia.com";
+                break;
             default:
                 appStore = "app.xiaomi.com";
 
