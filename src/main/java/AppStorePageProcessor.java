@@ -114,6 +114,7 @@ public class AppStorePageProcessor implements PageProcessor {
                 System.out.println(packageName + "    NOT Find in " + store);
                 return;
             }
+
             page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + packageName);// add ajax request for rating count to the fetch queue
             appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
             appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
