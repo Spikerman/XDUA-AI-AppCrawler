@@ -27,7 +27,6 @@ public class Client {
                     if (responseObj.getInt("status") == 0) {
                         String packageName = responseObj.getJSONObject("result").get("pname").toString();
                         Crawler.getInstance()
-                                .addStore("XIAOMI")
                                 .addStore("YYB")
                                 .addStore("WDJ")
                                 .setPackage(packageName)
@@ -46,4 +45,5 @@ public class Client {
             }
         }
     }
+
 }

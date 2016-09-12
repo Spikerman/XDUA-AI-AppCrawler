@@ -4,13 +4,14 @@ import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
+import java.io.IOException;
+
 /**
  * Created by chenhao on 8/19/16.
  */
 public class AppInfoPipeline implements Pipeline {
 
-    private MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private OkHttpClient client = new OkHttpClient();
+    private static final OkHttpClient postClient = new OkHttpClient();
 
     @Override
     public void process(ResultItems resultItems, Task task) {
@@ -35,7 +36,7 @@ public class AppInfoPipeline implements Pipeline {
 
         }
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
-        if (appInfo.cname != null || resultItems.get("ratingCount") != null) {
+        if (appInfo.cname != null && resultItems.get("ratingCount") != null) {
             JSONObject jsonObject = new JSONObject();
             RequestBody requestBody;
             Response response;
@@ -56,18 +57,27 @@ public class AppInfoPipeline implements Pipeline {
                 jsonObject.put("downloadc", appInfo.download);
                 jsonObject.put("apksize", appInfo.apkSize);
 
-                requestBody = RequestBody.create(JSON, jsonObject.toString());
+                requestBody = RequestBody.create(AsycClient.JSON, jsonObject.toString());
                 Request request = new Request.Builder()
                         .url("http://api.xdua.org/apps")
                         .post(requestBody)
                         .build();
-                response = client.newCall(request).execute();
+                postClient.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
 
-                if (response.isSuccessful()) {
-                    System.out.println(appInfo.packageName + "   SUCCESS " + store);
-                } else {
-                    System.out.println("XDUA Server Upload Error " + response);
-                }
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            System.out.println(appInfo.packageName + "   SUCCESS " + store);
+                        } else {
+                            System.out.println("XDUA Server Upload Error " + response);
+                        }
+                    }
+                });
+
             } catch (Exception e) {
                 //e.printStackTrace();
             }
