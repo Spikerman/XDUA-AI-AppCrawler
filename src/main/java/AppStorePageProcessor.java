@@ -18,8 +18,8 @@ public class AppStorePageProcessor implements PageProcessor {
     static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
     static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
     static String storeLinkForWDJ = "http://www.wandoujia.com/apps/%s";
-    // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
 
+    // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
     private Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
@@ -68,15 +68,11 @@ public class AppStorePageProcessor implements PageProcessor {
 
         appInfo.cname = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/h3[1]/text()").toString();
         appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-info]/img[1]/@src").toString();
-
         String apkSizeString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[2]/text()").replace("M", "").toString();
         appInfo.apkSize = (long) Float.parseFloat(apkSizeString) * 1024 * 1024;
-
         appInfo.version = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[4]/text()").toString();
-
         String versionDataString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[6]/text()").replace("-", "").toString();
         appInfo.versionDate = Integer.parseInt(versionDataString);
-
         appInfo.catoList.add(page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/p[2]/text()").replace("手机", "").toString());
 
         //权限列表处理
@@ -113,16 +109,15 @@ public class AppStorePageProcessor implements PageProcessor {
             int ratingCount = Integer.parseInt(new JsonPathSelector("$.obj[*].total").select(page.getRawText()));
             page.putField("ratingCount", ratingCount);
         } else {
-            page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + packageName);
             appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
             if (appInfo.company == null) {
                 System.out.println(packageName + "    NOT Find in " + store);
                 return;
             }
+            page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + packageName);// add ajax request for rating count to the fetch queue
             appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
             appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
             appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V|v", "").toString();
-
             //处理下载量
             String downloadString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-ins-num]/text()").toString();//8.3亿下载
             if (downloadString.indexOf("亿") > 0)
@@ -130,7 +125,7 @@ public class AppStorePageProcessor implements PageProcessor {
             else if (downloadString.indexOf("万") > 0)
                 appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("万下载", "")) * 10000);
             else
-                appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("人下载", ""));
+                appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("下载", ""));
 
             //处理安装包大小
             String apkSizeString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-size]/text()").replace("M", "").toString();//17.86M
@@ -146,7 +141,7 @@ public class AppStorePageProcessor implements PageProcessor {
 
             appInfo.brief = page.getHtml().xpath("//div[@class=det-intro-text]/div[1]/text()").toString();
 
-            //TODO  以项目前无法获取,有待改进
+            //TODO  版本日期目前无法获取,有待改进
             String versionDateString = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[4]").toString();//显示错误
             appInfo.versionDate = 0;
 

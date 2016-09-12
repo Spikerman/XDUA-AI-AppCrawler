@@ -35,11 +35,10 @@ public class AppInfoPipeline implements Pipeline {
 
         }
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
-        if (appInfo.cname != null && resultItems.get("ratingCount") != null) {
+        if (appInfo.cname != null || resultItems.get("ratingCount") != null) {
             JSONObject jsonObject = new JSONObject();
             RequestBody requestBody;
             Response response;
-
             try {
                 jsonObject.put("action", "setinfo");
                 jsonObject.put("isfrom", appStore);

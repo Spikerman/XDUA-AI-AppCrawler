@@ -15,10 +15,13 @@ public class Crawler {
 
     public static Crawler getInstance() {
         if (instance == null) {
-            instance = new Crawler();
+            synchronized (Crawler.class) {
+                instance = new Crawler();
+            }
         }
         return instance;
     }
+
 
     public static void main(String args[]) {
         String qq = "com.tencent.qqmusic";
