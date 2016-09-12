@@ -174,7 +174,6 @@ public class AppStorePageProcessor implements PageProcessor {
             } else {
                 dateString += x;
             }
-
         }
         appInfo.versionDate = Integer.parseInt(dateString);
 
@@ -187,7 +186,6 @@ public class AppStorePageProcessor implements PageProcessor {
         }
 
         appInfo.brief = page.getHtml().xpath("//div[@class=desc-info]/div[@itemprop=description]/text()").toString();
-
         String apkSizeString = page.getHtml().xpath("//dl[@class=infos-list]/dd[1]/text()").replace("M", "").toString();
         appInfo.apkSize = (long) Float.parseFloat(apkSizeString) * 1024 * 1024;
 
