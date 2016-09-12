@@ -19,6 +19,7 @@ public class AppStorePageProcessor implements PageProcessor {
     static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
     static String storeLinkForWDJ = "http://www.wandoujia.com/apps/%s";
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
+
     private Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
