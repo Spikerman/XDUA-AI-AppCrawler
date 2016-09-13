@@ -35,6 +35,19 @@ public class AppStorePageProcessor implements PageProcessor {
         appInfo.packageName = packageName;
     }
 
+    public AppStorePageProcessor() {
+    }
+
+    public AppStorePageProcessor setStore(String store) {
+        this.store = store;
+        return this;
+    }
+
+    public AppStorePageProcessor setPackageName(String packageName) {
+        this.packageName = packageName;
+        return this;
+    }
+
     @Override
     public void process(Page page) {
         switch (store) {
@@ -62,7 +75,7 @@ public class AppStorePageProcessor implements PageProcessor {
     private void pageParserForXIAOMI(Page page, AppInfo appInfo) {
         appInfo.company = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/p[1]/text()").toString();
         if (appInfo.company == null) {
-            System.out.println(packageName + "    NOT FIND in " + store);
+            System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT FIND in " + store);
             return;
         }
 
@@ -112,7 +125,7 @@ public class AppStorePageProcessor implements PageProcessor {
         } else {
             appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
             if (appInfo.company == null) {
-                System.out.println(packageName + "    NOT Find in " + store);
+                System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT Find in " + store);
                 return;
             }
             page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + packageName);// add ajax request for rating count to the fetch queue
@@ -155,7 +168,7 @@ public class AppStorePageProcessor implements PageProcessor {
 
         appInfo.company = page.getHtml().xpath("//dl[@class=infos-list]/dd[7]/a/span/text()").toString();
         if (appInfo.company == null) {
-            System.out.println(packageName + "    NOT Find in " + store);
+            System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT Find in " + store);
             return;
         }
         appInfo.cname = page.getHtml().xpath("//p[@class=app-name]/span[@class=title]/text()").toString();

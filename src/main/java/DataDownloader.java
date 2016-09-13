@@ -41,6 +41,19 @@ public class DataDownloader extends AbstractDownloader {
         this.store = store;
     }
 
+    public DataDownloader() {
+    }
+
+    public DataDownloader setStore(String store) {
+        this.store = store;
+        return this;
+    }
+
+    public DataDownloader setPackageName(String packageName) {
+        this.packageName = packageName;
+        return this;
+    }
+
     private CloseableHttpClient getHttpClient(Site site) {
         if (site == null) {
             return httpClientGenerator.getClient(null);
@@ -102,7 +115,7 @@ public class DataDownloader extends AbstractDownloader {
             }
 
         } catch (IOException e) {
-            System.out.println(packageName + "    TIMEOUT " + store);
+            System.out.println(Thread.currentThread().getId() + " " + packageName + "    TIMEOUT " + store);
             if (site.getCycleRetryTimes() > 0) {
                 return addToCycleRetry(request, site);
             }

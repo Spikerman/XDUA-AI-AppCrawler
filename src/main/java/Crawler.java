@@ -1,19 +1,20 @@
 import us.codecraft.webmagic.Spider;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by chenhao on 8/19/16.
  */
 public class Crawler {
     private static Crawler instance = null;
+    private static ExecutorService service = Executors.newFixedThreadPool(30);
     private String packageName;
     private Set<String> storeSet = new HashSet<>();
 
-    public static Crawler getInstance() {
+    static Crawler getInstance() {
         if (instance == null) {
             synchronized (Crawler.class) {
                 instance = new Crawler();
@@ -31,39 +32,29 @@ public class Crawler {
         Crawler.getInstance().setPackage(qq).addStore(wdj).start();
     }
 
-    public Crawler setPackage(String packageName) {
+    Crawler setPackage(String packageName) {
         this.packageName = packageName;
         return this;
     }
 
-    public Crawler addStore(String store) {
+    Crawler addStore(String store) {
         this.storeSet.add(store);
         return this;
     }
 
-    public void start() {
-        List<Thread> threadList = new ArrayList<>();
+    void start() {
         for (String store : storeSet) {
-            Runnable runnable = new CrawlTask(store, packageName);
-            Thread thread = new Thread(runnable);
-            thread.start();
-            threadList.add(thread);
+            Runnable runnable = new SpiderTask(store, packageName);
+            service.execute(runnable);
         }
-        try {
-            for (Thread thread : threadList) {
-                thread.join();
-            }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-    private class CrawlTask implements Runnable {
+    private class SpiderTask implements Runnable {
         String store;
         String packageName;
 
-        public CrawlTask(String store, String packageName) {
+        SpiderTask(String store, String packageName) {
             this.packageName = packageName;
             this.store = store;
         }
@@ -93,6 +84,7 @@ public class Crawler {
                     .setDownloader(new DataDownloader(packageName, store))
                     .thread(1)
                     .run();
+
         }
     }
 }

@@ -39,7 +39,6 @@ public class AppInfoPipeline implements Pipeline {
         if (appInfo.cname != null && resultItems.get("ratingCount") != null) {
             JSONObject jsonObject = new JSONObject();
             RequestBody requestBody;
-            Response response;
             try {
                 jsonObject.put("action", "setinfo");
                 jsonObject.put("isfrom", appStore);
@@ -57,11 +56,14 @@ public class AppInfoPipeline implements Pipeline {
                 jsonObject.put("downloadc", appInfo.download);
                 jsonObject.put("apksize", appInfo.apkSize);
 
-                requestBody = RequestBody.create(AsycClient.JSON, jsonObject.toString());
+                MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+                requestBody = RequestBody.create(JSON, jsonObject.toString());
                 Request request = new Request.Builder()
                         .url("http://api.xdua.org/apps")
                         .post(requestBody)
                         .build();
+
+                //todo:改为串型
                 postClient.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
@@ -71,10 +73,11 @@ public class AppInfoPipeline implements Pipeline {
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         if (response.isSuccessful()) {
-                            System.out.println(appInfo.packageName + "   SUCCESS " + store);
+                            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "   SUCCESS " + store);
                         } else {
                             System.out.println("XDUA Server Upload Error " + response);
                         }
+                        response.body().close();
                     }
                 });
 

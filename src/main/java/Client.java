@@ -33,7 +33,7 @@ public class Client {
                                 .start();
                         System.out.println();
                     } else {
-                        System.out.println("Crawler Finish");
+                        System.out.println(Thread.currentThread().getId() + " Crawler Finish");
                         return;
                     }
                 } else {
