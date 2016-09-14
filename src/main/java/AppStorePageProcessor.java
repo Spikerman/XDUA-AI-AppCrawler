@@ -36,9 +36,11 @@ public class AppStorePageProcessor implements PageProcessor {
 
     @Override
     public void process(Page page) {
-        if (isFirstPage)
+
+        if (isFirstPage) {
+            appUrlList.remove(0);//第一个 url 在 Spider 初始化时以作为参数传入，故在此去除，而不必加入后续待爬取选项
             page.addTargetRequests(appUrlList);
-        else
+        } else
             isFirstPage = false;
 
         AppInfo appInfo = new AppInfo();

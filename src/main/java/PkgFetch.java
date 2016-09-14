@@ -19,7 +19,7 @@ public class PkgFetch {
 
     public static void main(String args[]) {
         try {
-            PkgFetch.getInstance().startFetch();
+            PkgFetch.getInstance().fetchPackage();
             PkgFetch.packageSet.forEach(System.out::println);
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,7 +39,8 @@ public class PkgFetch {
         return packageSet;
     }
 
-    public void startFetch() throws Exception {
+    public void fetchPackage() throws Exception {
+        packageSet.clear();
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Thread thread = new Thread(new RequestTask());
@@ -50,6 +51,7 @@ public class PkgFetch {
         for (Thread thread : threadList) {
             thread.join();
         }
+        packageSet.forEach(p -> System.out.println(p + " START"));
     }
 
     private class RequestTask implements Runnable {

@@ -11,7 +11,7 @@ import java.util.Set;
  */
 
 
-public class AsycClient {
+public class ImprovedClient {
 
     public static void main(String args[]) {
 
@@ -52,7 +52,7 @@ public class AsycClient {
 //                    }
 //                }
 //            });
-            PkgFetch.getInstance().startFetch();
+            PkgFetch.getInstance().fetchPackage();
             List urlList = linkTransfer(PkgFetch.getInstance().getPackageSet());
             Spider.create(new AppStorePageProcessor(urlList))
                     .addUrl(urlList.get(0).toString())
