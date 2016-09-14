@@ -3,7 +3,7 @@
  * Mail: mail4spikerman@gmail.com
  * Created Date: 9/13/16
  */
-public class CrawlerTask implements Runnable {
+class CrawlerTask implements Runnable {
     private String packageName;
 
     public CrawlerTask(String packageName) {

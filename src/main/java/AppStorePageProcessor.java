@@ -18,51 +18,48 @@ public class AppStorePageProcessor implements PageProcessor {
     static String storeLinkForXIAOMI = "http://app.xiaomi.com/details?id=%s";
     static String storeLinkForYYB = "http://sj.qq.com/myapp/detail.htm?apkName=%s";
     static String storeLinkForWDJ = "http://www.wandoujia.com/apps/%s";
-
+    private List<String> appUrlList = new ArrayList<>();
+    private boolean isFirstPage = true;
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    private Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
+    private Site site = Site.me().setCycleRetryTimes(3).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
             .addHeader("X-Apple-Store-Front", "143465,12")
             .addHeader("Accept-Language", "en-us, en, zh; q=0.50");
-    private String store;
-    private String packageName;
-    private AppInfo appInfo = new AppInfo();
 
     public AppStorePageProcessor(String store, String packageName) {
-        this.store = store;
-        this.packageName = packageName;
-        appInfo.packageName = packageName;
     }
 
-    public AppStorePageProcessor() {
-    }
-
-    public AppStorePageProcessor setStore(String store) {
-        this.store = store;
-        return this;
-    }
-
-    public AppStorePageProcessor setPackageName(String packageName) {
-        this.packageName = packageName;
-        return this;
+    public AppStorePageProcessor(List<String> appUrlList) {
+        this.appUrlList = appUrlList;
     }
 
     @Override
     public void process(Page page) {
-        switch (store) {
-            case "XIAOMI":
-                pageParserForXIAOMI(page, appInfo);
-                break;
-            case "YYB":
-                pageParserForYYB(page, appInfo);
-                break;
-            case "WDJ":
-                pageParserForWDJ(page, appInfo);
-                break;
+        if (isFirstPage)
+            page.addTargetRequests(appUrlList);
+        else
+            isFirstPage = false;
+
+        AppInfo appInfo = new AppInfo();
+        String matchString = "http://app\\.xiaomi\\.com/details\\?id=|http://sj\\.qq\\.com/myapp/detail\\.htm\\?apkName=|http://www\\.wandoujia\\.com/apps/";
+        String currentUrl = page.getUrl().toString();
+        String storeLink = page.getUrl().regex(matchString).toString();
+        appInfo.packageName = currentUrl.replace(storeLink, "");
+        String storeName;
+        if (storeLink.equals("http://app.xiaomi.com/details?id=")) {
+            pageParserForXIAOMI(page, appInfo);
+            storeName = "XIAOMI";
+        } else if (storeLink.equals("http://sj.qq.com/myapp/detail.htm?apkName=")) {
+            pageParserForYYB(page, appInfo);
+            storeName = "YYB";
+        } else {
+            pageParserForWDJ(page, appInfo);
+            storeName = "WDJ";
         }
+
         page.putField("appinfo", appInfo);
-        page.putField("storeList", store);
+        page.putField("storeList", storeName);
     }
 
     @Override
@@ -75,10 +72,9 @@ public class AppStorePageProcessor implements PageProcessor {
     private void pageParserForXIAOMI(Page page, AppInfo appInfo) {
         appInfo.company = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/p[1]/text()").toString();
         if (appInfo.company == null) {
-            System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT FIND in " + store);
+            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in XIAOMI");
             return;
         }
-
         appInfo.cname = page.getHtml().xpath("//div[@class=app-info]/div[@class=intro-titles]/h3[1]/text()").toString();
         appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-info]/img[1]/@src").toString();
         String apkSizeString = page.getHtml().xpath("//div[@class=look-detail]/div[1]/ul[1]/li[2]/text()").replace("M", "").toString();
@@ -125,10 +121,10 @@ public class AppStorePageProcessor implements PageProcessor {
         } else {
             appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
             if (appInfo.company == null) {
-                System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT Find in " + store);
+                System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in YYB");
                 return;
             }
-            page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + packageName);// add ajax request for rating count to the fetch queue
+            page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + appInfo.packageName);// add ajax request for rating count to the fetch queue
             appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
             appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
             appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V|v", "").toString();
@@ -168,7 +164,7 @@ public class AppStorePageProcessor implements PageProcessor {
 
         appInfo.company = page.getHtml().xpath("//dl[@class=infos-list]/dd[7]/a/span/text()").toString();
         if (appInfo.company == null) {
-            System.out.println(Thread.currentThread().getId() + " " + packageName + "    NOT Find in " + store);
+            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in WDJ");
             return;
         }
         appInfo.cname = page.getHtml().xpath("//p[@class=app-name]/span[@class=title]/text()").toString();
@@ -186,15 +182,12 @@ public class AppStorePageProcessor implements PageProcessor {
             }
         }
         appInfo.versionDate = Integer.parseInt(dateString);
-
         appInfo.version = page.getHtml().xpath("//dl[@class=infos-list]/dd[5]/text()").toString();
-
         appInfo.permissionList = new ArrayList<>();
         List<Selectable> pmsNodeList = page.getHtml().xpath("//ul[@class=perms-list]/li").nodes();
         for (Selectable node : pmsNodeList) {
             appInfo.permissionList.add(node.xpath("//li/span/text()").toString());
         }
-
         appInfo.brief = page.getHtml().xpath("//div[@class=desc-info]/div[@itemprop=description]/text()").toString();
         String apkSizeString = page.getHtml().xpath("//dl[@class=infos-list]/dd[1]/text()").replace("M", "").toString();
         appInfo.apkSize = (long) Float.parseFloat(apkSizeString) * 1024 * 1024;
@@ -205,7 +198,7 @@ public class AppStorePageProcessor implements PageProcessor {
         else if (downloadString.indexOf("万") > 0)
             appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("万", "")) * 10000);
         else
-            appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("", ""));//// TODO: 8/25/16 少量人带查询
+            appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("", ""));//// TODO: 8/25/16 少量人情况字符显示待查询
 
         List<Selectable> tagNodeList = page.getHtml().xpath("//div[@class=tag-box]").nodes();
         for (Selectable node : tagNodeList) {

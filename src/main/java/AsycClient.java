@@ -1,5 +1,8 @@
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import us.codecraft.webmagic.Spider;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Author: Spikerman
@@ -50,14 +53,27 @@ public class AsycClient {
 //                }
 //            });
             PkgFetch.getInstance().startFetch();
-            ExecutorService service = Executors.newFixedThreadPool(5);
-            for (String name : PkgFetch.getInstance().getPackageSet()) {
-                System.out.println(name + "START");
-                CrawlerTask task = new CrawlerTask(name);
-                service.execute(task);
-            }
+            List urlList = linkTransfer(PkgFetch.getInstance().getPackageSet());
+            Spider.create(new AppStorePageProcessor(urlList))
+                    .addUrl(urlList.get(0).toString())
+                    .addPipeline(new AppInfoPipeline())
+                    .setDownloader(new DataDownloader())
+                    .thread(10)
+                    .run();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    //将 packageSet 内的所有包名转换成其在各应用商店对应的 url 并添加到 appUrlList 中
+    static private List linkTransfer(Set<String> packageSet) {
+        List<String> appUrlList = new ArrayList<>();
+        for (String p : packageSet) {
+            appUrlList.add(String.format(AppStorePageProcessor.storeLinkForXIAOMI, p));
+            appUrlList.add(String.format(AppStorePageProcessor.storeLinkForWDJ, p));
+            appUrlList.add(String.format(AppStorePageProcessor.storeLinkForYYB, p));
+        }
+        return appUrlList;
+    }
+
 }

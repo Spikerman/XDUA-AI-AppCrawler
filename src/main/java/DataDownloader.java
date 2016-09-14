@@ -42,6 +42,8 @@ public class DataDownloader extends AbstractDownloader {
     }
 
     public DataDownloader() {
+        this.packageName = "";
+        this.store = "";
     }
 
     public DataDownloader setStore(String store) {

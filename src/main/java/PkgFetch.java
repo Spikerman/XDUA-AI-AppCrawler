@@ -71,6 +71,7 @@ public class PkgFetch {
                 } else {
                     System.out.println("XDUA Server Retrieve Fail " + response);
                 }
+                response.body().close();
             } catch (Exception e) {
                 e.printStackTrace();
             }

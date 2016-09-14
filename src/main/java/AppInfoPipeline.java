@@ -4,8 +4,6 @@ import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
-import java.io.IOException;
-
 /**
  * Created by chenhao on 8/19/16.
  */
@@ -63,24 +61,13 @@ public class AppInfoPipeline implements Pipeline {
                         .post(requestBody)
                         .build();
 
-                //todo:改为串型
-                postClient.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        if (response.isSuccessful()) {
-                            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "   SUCCESS " + store);
-                        } else {
-                            System.out.println("XDUA Server Upload Error " + response);
-                        }
-                        response.body().close();
-                    }
-                });
-
+                Response response = postClient.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "   SUCCESS " + store);
+                } else {
+                    System.out.println("XDUA Server Upload Error " + response);
+                }
+                response.body().close();
             } catch (Exception e) {
                 //e.printStackTrace();
             }
