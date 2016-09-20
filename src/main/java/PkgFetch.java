@@ -12,6 +12,7 @@ import java.util.Set;
  * Created Date: 9/13/16
  */
 public class PkgFetch {
+
     private static final Set<String> packageSet = new HashSet<>();
     private static final OkHttpClient receiveClient = new OkHttpClient();
     private static PkgFetch instance = null;
@@ -26,7 +27,7 @@ public class PkgFetch {
         }
     }
 
-    static PkgFetch getInstance() {
+    public static PkgFetch getInstance() {
         if (instance == null) {
             synchronized (Crawler.class) {
                 instance = new PkgFetch();
@@ -39,6 +40,7 @@ public class PkgFetch {
         return packageSet;
     }
 
+
     public void fetchPackage() throws Exception {
         packageSet.clear();
         List<Thread> threadList = new ArrayList<>();
@@ -47,7 +49,6 @@ public class PkgFetch {
             thread.start();
             threadList.add(thread);
         }
-
         for (Thread thread : threadList) {
             thread.join();
         }

@@ -1,7 +1,6 @@
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.selector.JsonPathSelector;
 import us.codecraft.webmagic.selector.Selectable;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ public class AppStorePageProcessor implements PageProcessor {
     private List<String> appUrlList = new ArrayList<>();
     private boolean isFirstPage = true;
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    private Site site = Site.me().setCycleRetryTimes(3).setSleepTime(1500).setTimeOut(3000)
+    private Site site = Site.me().setCycleRetryTimes(5).setSleepTime(1500).setTimeOut(3000)
             .setCharset("utf-8")
             .setUserAgent("iTunes/12.2.1 (Macintosh; Intel Mac OS X 10.11.3) AppleWebKit/601.4.4")
             .addHeader("X-Apple-Store-Front", "143465,12")
@@ -61,7 +60,7 @@ public class AppStorePageProcessor implements PageProcessor {
         }
 
         page.putField("appinfo", appInfo);
-        page.putField("storeList", storeName);
+        page.putField("store", storeName);
     }
 
     @Override
@@ -115,61 +114,63 @@ public class AppStorePageProcessor implements PageProcessor {
 
 
     private void pageParserForYYB(Page page, AppInfo appInfo) {
-        String ajaxRegexYYB = ".*comment.htm\\?apkName=.*";
-        if (page.getUrl().regex(ajaxRegexYYB).match()) {
-            //fixme: java.lang.NullPointerException occurs sometimes
-            int ratingCount = Integer.parseInt(new JsonPathSelector("$.obj[*].total").select(page.getRawText()));
-            page.putField("ratingCount", ratingCount);
-        } else {
-            appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
-            if (appInfo.company == null) {
-                System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in YYB");
-                return;
-            }
-            page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + appInfo.packageName);// add ajax request for rating count to the fetch queue
-            appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
-            appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
-            appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V|v", "").toString();
-            //处理下载量
-            String downloadString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-ins-num]/text()").toString();//8.3亿下载
-            if (downloadString.indexOf("亿") > 0)
-                appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("亿下载", "")) * 100000000);
-            else if (downloadString.indexOf("万") > 0)
-                appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("万下载", "")) * 10000);
-            else
-                appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("下载", ""));
+        // String ajaxRegexYYB = ".*comment.htm\\?apkName=.*";
+//        if (page.getUrl().regex(ajaxRegexYYB).match()) {
+//            int ratingCount = Integer.parseInt(new JsonPathSelector("$.obj[*].total").select(page.getRawText()));
+//            page.putField("ratingCount", ratingCount);
 
-            //处理安装包大小
-            String apkSizeString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-size]/text()").replace("M", "").toString();//17.86M
-            appInfo.apkSize = (long) Float.parseFloat(apkSizeString.replace("M", "")) * 1024 * 1024;
-
-            //处理评分高低
-            String rateString = page.getHtml().xpath("//div[@class=com-blue-star-num]/text()").toString();//3.8分
-            appInfo.rating = Float.parseFloat(rateString.replace("分", ""));
-
-            //处理l应用类别
-            String typeString = page.getHtml().xpath("//div[@class=det-type-box]/a[@class=det-type-link]/text()").toString();
-            appInfo.catoList.add(typeString);
-
-            appInfo.brief = page.getHtml().xpath("//div[@class=det-intro-text]/div[1]/text()").toString();
-
-            //TODO  版本日期目前无法获取,有待改进
-            String versionDateString = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[4]").toString();//显示错误
-            appInfo.versionDate = 0;
-
+        appInfo.company = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[6]/text()").toString();
+        if (appInfo.company == null) {
+            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in YYB");
+            return;
         }
+        // fixme 当前结构不支持获取此操作
+        // page.addTargetRequest("http://sj.qq.com/myapp/app/comment.htm?apkName=" + appInfo.packageName);
 
+        appInfo.cname = page.getHtml().xpath("//div[@class=det-name]/div[@class=det-name-int]/text()").toString();
+        appInfo.imgUrl = page.getHtml().xpath("//div[@data-modname=appinfo]/div[@class=det-icon]/img[1]/@src").toString();
+        appInfo.version = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[2]/text()").replace("V|v", "").toString();
+        //处理下载量
+        String downloadString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-ins-num]/text()").toString();//8.3亿下载
+        if (downloadString.indexOf("亿") > 0)
+            appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("亿下载", "")) * 100000000);
+        else if (downloadString.indexOf("万") > 0)
+            appInfo.download = (long) (Float.parseFloat(downloadString.replaceAll("万下载", "")) * 10000);
+        else
+            appInfo.download = (long) Float.parseFloat(downloadString.replaceAll("下载", ""));
+
+        //处理安装包大小
+        String apkSizeString = page.getHtml().xpath("//div[@class=det-insnum-line]/div[@class=det-size]/text()").replace("M", "").toString();//17.86M
+        appInfo.apkSize = (long) Float.parseFloat(apkSizeString.replace("M", "")) * 1024 * 1024;
+
+        //处理评分高低
+        String rateString = page.getHtml().xpath("//div[@class=com-blue-star-num]/text()").toString();//3.8分
+        appInfo.rating = Float.parseFloat(rateString.replace("分", ""));
+
+        //处理l应用类别
+        String typeString = page.getHtml().xpath("//div[@class=det-type-box]/a[@class=det-type-link]/text()").toString();
+        appInfo.catoList.add(typeString);
+
+        appInfo.brief = page.getHtml().xpath("//div[@class=det-intro-text]/div[1]/text()").toString();
+
+        //TODO  版本日期目前无法获取,有待改进
+        String versionDateString = page.getHtml().xpath("//div[@data-modname=appOthInfo]/div[4]").toString();//显示错误
+        appInfo.versionDate = 0;
     }
 
 
     private void pageParserForWDJ(Page page, AppInfo appInfo) {
 
-        appInfo.company = page.getHtml().xpath("//dl[@class=infos-list]/dd[7]/a/span/text()").toString();
-        if (appInfo.company == null) {
+//        appInfo.company = page.getHtml().xpath("//dl[@class=infos-list]/dd[7]/a/span/text()").toString();
+//        if (appInfo.company == null) {
+//            System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in WDJ");
+//            return;
+//        }
+        appInfo.cname = page.getHtml().xpath("//p[@class=app-name]/span[@class=title]/text()").toString();
+        if (appInfo.cname.isEmpty()) {
             System.out.println(Thread.currentThread().getId() + " " + appInfo.packageName + "    NOT FIND in WDJ");
             return;
         }
-        appInfo.cname = page.getHtml().xpath("//p[@class=app-name]/span[@class=title]/text()").toString();
         appInfo.imgUrl = page.getHtml().xpath("//div[@class=app-icon]/img/@src").toString();
 
         String versionDateString = page.getHtml().xpath("//dl[@class=infos-list]/dd[4]/time[1]/text()").toString();//201682
@@ -207,12 +208,14 @@ public class AppStorePageProcessor implements PageProcessor {
             appInfo.catoList.add(node.xpath("//a/text()").toString());
         }
 
-        float favorAmount = Float.parseFloat(page.getHtml().xpath("//div[@class=num-list]/span[2]/i/text()").toString());
-        float reviewAmount = Float.parseFloat(page.getHtml().xpath("//div[@class=num-list]/a/i/text()").toString());
+        int favorAmount = Integer.parseInt(page.getHtml().xpath("//div[@class=num-list]/span[2]/i/text()").toString());
+        int reviewAmount = Integer.parseInt(page.getHtml().xpath("//div[@class=num-list]/a/i/text()").toString());
         if (reviewAmount != 0)
-            appInfo.rating = favorAmount / reviewAmount * 5;
+            appInfo.rating = (float) favorAmount / (float) reviewAmount * 5;
         else
             appInfo.rating = 0;
+
+        appInfo.ratingCount = reviewAmount;
     }
 }
 

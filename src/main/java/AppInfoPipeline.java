@@ -14,7 +14,7 @@ public class AppInfoPipeline implements Pipeline {
     @Override
     public void process(ResultItems resultItems, Task task) {
         AppInfo appInfo = resultItems.get("appinfo");
-        String store = resultItems.get("storeList");
+        String store = resultItems.get("store");
         String appStore;
         switch (store) {
             case "XIAOMI":
@@ -34,7 +34,9 @@ public class AppInfoPipeline implements Pipeline {
 
         }
         //检查是否成功从网站获取到APP信息,若中文名为空,则代表获取失败,返回
-        if (appInfo.cname != null && resultItems.get("ratingCount") != null) {
+        //if (appInfo.cname != null && resultItems.get("ratingCount") != null)
+
+        if (appInfo.cname != null) {
             JSONObject jsonObject = new JSONObject();
             RequestBody requestBody;
             try {

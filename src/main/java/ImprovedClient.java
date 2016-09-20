@@ -16,53 +16,24 @@ public class ImprovedClient {
     public static void main(String args[]) {
 
         try {
-//            JSONObject jsonObject = new JSONObject();
-//            jsonObject.put("action", "getonepkg");
-//            RequestBody body = RequestBody.create(JSON, jsonObject.toString());
-//            Request request = new Request.Builder()
-//                    .url("http://api.xdua.org/apps")
-//                    .post(body)
-//                    .build();
-//
-//
-//            receiveClient.newCall(request).enqueue(new Callback() {
-//                @Override
-//                public void onFailure(Call call, IOException e) {
-//                    System.out.println(" XDUA Server Retrieve Fail ");
-//                }
-//
-//                @Override
-//                public void onResponse(Call call, Response response) throws IOException {
-//                    if (response.isSuccessful()) {
-//                        try {
-//                            JSONObject responseObj = new JSONObject(response.body().string());
-//                            String packageName = responseObj.getJSONObject("result").get("pname").toString();
-////                                Crawler.getInstance()
-////                                        .addStore("YYB")
-////                                        .addStore("WDJ")
-////                                        .addStore("XIAOMI")
-////                                        .setPackage(packageName)
-////                                        .start();
-//                            pnameSet.add(packageName);
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        } finally {
-//                            response.body().close();
-//                        }
-//                    }
-//                }
-//            });
-            PkgFetch.getInstance().fetchPackage();
-            List urlList = linkTransfer(PkgFetch.getInstance().getPackageSet());
-            Spider.create(new AppStorePageProcessor(urlList))
-                    .addUrl(urlList.get(0).toString())
-                    .addPipeline(new AppInfoPipeline())
-                    .setDownloader(new DataDownloader())
-                    .thread(10)
-                    .run();
+            while (true) {
+                PkgFetch.getInstance().fetchPackage();
+
+                List urlList = linkTransfer(PkgFetch.getInstance().getPackageSet());
+//                Set<String> packageSet = new HashSet<>();
+//                packageSet.add("com.tencent.qqmusic");
+//                List urlList = linkTransfer(packageSet);
+                Spider.create(new AppStorePageProcessor(urlList))
+                        .addUrl(urlList.get(0).toString())
+                        .addPipeline(new AppInfoPipeline())
+                        .setDownloader(new DataDownloader())
+                        .thread(10)
+                        .run();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     //将 packageSet 内的所有包名转换成其在各应用商店对应的 url 并添加到 appUrlList 中

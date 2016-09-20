@@ -46,16 +46,6 @@ public class DataDownloader extends AbstractDownloader {
         this.store = "";
     }
 
-    public DataDownloader setStore(String store) {
-        this.store = store;
-        return this;
-    }
-
-    public DataDownloader setPackageName(String packageName) {
-        this.packageName = packageName;
-        return this;
-    }
-
     private CloseableHttpClient getHttpClient(Site site) {
         if (site == null) {
             return httpClientGenerator.getClient(null);
